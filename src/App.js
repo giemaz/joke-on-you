@@ -1,25 +1,67 @@
-import logo from './logo.svg';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	const [jokes, setJokes] = useState([]);
+
+	useEffect(() => {
+		async function fetchJokes() {
+			let fetchedJokes = [];
+			while (fetchedJokes.length < 10) {
+				const response = await fetch('https://v2.jokeapi.dev/joke/Programming');
+				const data = await response.json();
+				if (data.joke) {
+					let hasSetup = true;
+					let setup = data.setup;
+					let delivery = data.delivery;
+					let tags = 'twopart';
+					if (data.type === 'single') {
+						hasSetup = false;
+						setup = data.joke;
+						delivery = '';
+						tags = 'single';
+					}
+					fetchedJokes.push({
+						setup,
+						delivery,
+						hasSetup,
+						tags,
+					});
+				}
+			}
+			setJokes(fetchedJokes);
+		}
+		fetchJokes();
+	}, []);
+
+	return (
+		<div className='container'>
+			<h1>Jokes-On-You</h1>
+			<table>
+				<thead>
+					<tr>
+						<th>No.</th>
+						<th>Tags</th>
+						<th>Joke</th>
+					</tr>
+				</thead>
+				<tbody>
+					{jokes.map((joke, index) => (
+						<tr key={index}>
+							<td>{index + 1}</td>
+							<td>
+								{joke.hasSetup ? 'Setup' : 'Joke'} {joke.hasSetup && ' / Delivery'}
+							</td>
+							<td>
+								{joke.hasSetup && <span className='tag'>setup:</span>} {joke.setup}{' '}
+								{joke.hasSetup && <span className='tag'>delivery:</span>} {joke.delivery}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	);
 }
 
 export default App;
